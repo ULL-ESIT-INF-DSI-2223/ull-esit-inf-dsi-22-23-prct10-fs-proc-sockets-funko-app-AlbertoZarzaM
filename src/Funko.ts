@@ -10,7 +10,6 @@ export enum Tipo {
   VynilSoda = "Vynil Soda",
   VynilGold = "Vynil Gold",
 }
-
 /**
  * @enum Genero
  * @description Enumerado que contiene los géneros de Funkos
