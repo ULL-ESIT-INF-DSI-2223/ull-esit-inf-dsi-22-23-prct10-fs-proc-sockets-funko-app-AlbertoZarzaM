@@ -12,7 +12,10 @@ import {spawn} from 'child_process';
     console.log(`File helloworld.txt has ${wcOutput1[0]} lines`);
   });
 
-  
+
+
+////////////////////////////////////////////////////////////////////////////////
+
   const cat = spawn('cat', ['helloworld.txt']);
   const wc = spawn('wc', ['-l']);
   
