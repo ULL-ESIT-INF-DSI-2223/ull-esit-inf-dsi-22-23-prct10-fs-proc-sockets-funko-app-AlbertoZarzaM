@@ -1,13 +1,14 @@
 import { FunkoCollection } from "./FunkoCollection.js";
+import { Funko } from "./Funko.js";
 
 export class User {
   private _nombre: string;
   private _ownerOf: FunkoCollection;
 
-  constructor(nombre: string) {
+  constructor(nombre: string, funko?: Funko) {
     this._nombre = nombre;
     if (nombre !== "prueba") {
-      this._ownerOf = new FunkoCollection(this.nombre);
+      this._ownerOf = new FunkoCollection(this.nombre, funko);
     }
     else {
       this._ownerOf = new FunkoCollection("prueba");

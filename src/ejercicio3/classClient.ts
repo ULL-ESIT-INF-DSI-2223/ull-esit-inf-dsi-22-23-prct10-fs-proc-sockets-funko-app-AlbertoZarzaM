@@ -1,9 +1,15 @@
 import net from 'net';
-import { Peticion, RequestType } from './peticion.js';
+import {  RequestType } from './tipos.js';
 import { Funko, Tipo, Genero } from './Funko.js';
 import chalk from 'chalk';
 
-
+/**
+ * Clase Cliente
+ * 
+ * Esta clase se encarga de establecer la conexión con el servidor y enviarle
+ * las peticiones.
+ * 
+ */
 export class Client {
 
   private client: net.Socket;

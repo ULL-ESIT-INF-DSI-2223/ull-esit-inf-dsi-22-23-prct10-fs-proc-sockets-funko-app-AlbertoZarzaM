@@ -5,7 +5,7 @@ export class FunkoCollection {
   private _funkos: Funko[];
   private owner: string;
 
-  constructor(owner: string) {
+  constructor(owner: string, funko?: Funko) {
     this._funkos = [];
     this.owner = owner;
     if (owner === "prueba") {
@@ -25,52 +25,59 @@ export class FunkoCollection {
       );
     }
     else {
-      // Crea el directorio si no existe
-      let archivos = [] as string[];
-      try {
-        // Lee el directorio
-        archivos = fs
-          .readdirSync("./data/" + this.owner + "/", { withFileTypes: true })
-          .filter((dirent) => dirent.isFile())
-          .map((dirent) => dirent.name);
-      } catch (err) {
-        if (err.code === "ENOENT") {
-          // Si el error es porque el directorio no existe
-          console.log(`El directorio  no existe. Creando directorio...`);
-          fs.mkdirSync("./data/" + this.owner);
-          console.log(`Directorio  creado exitosamente.`);
-        } else {
-          // Si el error no es porque el directorio no existe, lanza una excepción
-          throw err;
-        }
-      }
+      let archivos: string[] = [];
 
-      /**
-       * Lee los archivos JSON y los convierte en objetos de tipo Funko
-       * y los agrega al arreglo de Funkos
-       *
-       */
-      for (let i = 0; i < archivos.length; i++) {
-        const funko = new Funko(
-          0,
-          "",
-          "",
-          Tipo.Pop,
-          Genero.Animacion,
-          "",
-          0,
-          false,
-          "",
-          0
-        );
-        const funkoJSON = fs.readFileSync(
-          "./data/" + this.owner + "/" + archivos[i],
-          "utf-8"
-        );
-        const funkoLeido = JSON.parse(funkoJSON);
-        Object.assign(funko, funkoLeido);
-        this._funkos.push(funko);
-      }
+      fs.readdir(`./data/${this.owner}/`, { withFileTypes: true }, (err, dirents) => {
+        if (err) {
+          if (err.code === "ENOENT") {
+            console.log(`El directorio no existe. Creando directorio...`);
+            fs.mkdir(`./data/${this.owner}`, (err) => {
+              if (err) {
+                console.error(err);
+                return;
+              }
+              console.log(`Directorio creado exitosamente.`);
+              this._funkos.push(funko as Funko);
+              this.addFunko(funko as Funko);              
+            });
+          } else {
+            throw err;
+          }
+        } else {
+          archivos = dirents.filter((dirent) => dirent.isFile()).map((dirent) => dirent.name);
+  
+          for (let i = 0; i < archivos.length; i++) {
+            const funko = new Funko(
+              0,
+              "",
+              "",
+              Tipo.Pop,
+              Genero.Animacion,
+              "",
+              0,
+              false,
+              "",
+              0
+            );
+  
+            fs.readFile(
+              `./data/${this.owner}/${archivos[i]}`,
+              "utf-8",
+              (err, data) => {
+                if (err) {
+                  console.error(err);
+                  return;
+                }
+  
+                const funkoLeido = JSON.parse(data);
+                Object.assign(funko, funkoLeido);
+                this._funkos.push(funko);
+              }
+            );
+          }
+        }
+  
+      });
     }
   }
   
@@ -113,11 +120,17 @@ export class FunkoCollection {
       return;
     }
     const funkoJSON = JSON.stringify(funko);
-    fs.writeFileSync(
+    fs.writeFile(
       "./data/" + this.owner + "/funko" + funko.id + ".json",
-      funkoJSON
+      funkoJSON,
+      (err) => {
+        if (err) {
+          throw err;
+        } else {
+          this._funkos.push(funko);
+        }
+      }
     );
-    this._funkos.push(funko);
   }
 
   /**
@@ -131,8 +144,13 @@ export class FunkoCollection {
       return;
     }
     const funko = this.getFunko(id);
-    fs.unlinkSync("./data/" + this.owner + "/funko" + funko.id + ".json");
-    this._funkos = this._funkos.filter((funko) => funko.id !== id);
+    fs.unlink("./data/" + this.owner + "/funko" + funko.id + ".json", (err) => {
+      if (err) {
+        throw err;
+      } else {
+        this._funkos = this._funkos.filter((f) => f.id !== id);
+      }
+    });
   }
 
   /**

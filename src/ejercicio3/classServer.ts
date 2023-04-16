@@ -1,6 +1,5 @@
 import net from 'net';
-import { spawn } from 'child_process';
-import { Peticion, ResponseType } from './peticion.js';
+import {  ResponseType } from './tipos.js';
 import { UserCollection } from "./UserCollection.js";
 import { User } from "./User.js";
 import { Funko, Tipo, Genero } from "./Funko.js";
@@ -8,22 +7,48 @@ import chalk from "chalk";
 
 const users = new UserCollection();
 
-
+/**
+ * 
+ * Función que comprueba si un valor está en un enum
+ * 
+ * @param valor  Valor a buscar en el enum
+ * @param enumObj  Enum donde buscar
+ * @returns 
+ */
 function estaEnEnum(valor: string, enumObj: object): boolean {
   return Object.values(enumObj).includes(valor);
 }
 
+/**
+ * Clase que representa el servidor
+ * 
+ * Esta clase se encarga de establecer la conexión con el cliente y procesar
+ * las peticiones que recibe.
+ * 
+ */
 export class Server {
 
   private server: net.Server;
   private port: number;
   private response_ = '';
 
+  /**
+   * Constructor de la clase
+   * @param port Puerto en el que escuchará el servidor
+   * 
+   */
   constructor(port: number) {
     this.port = port;
     this.server = net.createServer();
   }
 
+  /**
+   * Método que inicia el servidor
+   * 
+   * Este método se encarga de iniciar el servidor y establecer el manejador
+   * de eventos para las conexiones entrantes.
+   * 
+   */
   public start() {
 
     this.server.listen(this.port, () => {
@@ -94,29 +119,8 @@ export class Server {
             }
           }
           else if (requestObj.type == "add") {
-            const tipo = requestObj.type;
-            const gender = requestObj.gender;
 
-            if (estaEnEnum(tipo, Tipo)) {
-              console.log(chalk.green("Tipo correcto"));
-            } else {
-              console.error(chalk.red("Tipo incorrecto"));
-              response = {
-                type: 'add',
-                success: false
-              };
-            }
-
-            if (estaEnEnum(gender, Genero)) {
-              console.log(chalk.green("Género correcto"));
-            } else {
-              console.error(chalk.red("Género incorrecto"));
-              response = {
-                type: 'add',
-                success: false
-              };
-            }
-            if (users.getUserByName(requestObj.user).ownerOf.getFunko(requestObj.id) === undefined) {
+            if (users.getUserByName(requestObj.nameuser)?.ownerOf.getFunko(requestObj.namefunko) === undefined) {
               const FunkoToAdd = new Funko(
                 0,
                 "",
@@ -130,69 +134,33 @@ export class Server {
                 0
               );
               Object.assign(FunkoToAdd, requestObj.funkoPop);
-              if (users.getUserByName(requestObj.user) === undefined) {
-                console.log(chalk.red("User not found"));
-                console.log(chalk.yellow("Creating user..."));
-                users.addUser(new User(requestObj.user));
-                users.getUserByName(requestObj.user).ownerOf.addFunko(FunkoToAdd);
+              const tipo = FunkoToAdd.tipo;
+              const gender = FunkoToAdd.genero;
+  
+              if (estaEnEnum(tipo, Tipo)) {
+                console.log(chalk.green("Tipo correcto"));
               } else {
-                users.getUserByName(requestObj.user).ownerOf.addFunko(FunkoToAdd);
+                console.error(chalk.red("Tipo incorrecto"));
+                response = {
+                  type: 'add',
+                  success: false
+                };
               }
-              response = {
-                type: 'add',
-                success: true
-              };
-            } else {
-              console.log(chalk.red("Funko already exists on user " + requestObj.user));
-              response = {
-                type: 'add',
-                success: false
-              };
-            }
-          }
-          else if (requestObj.type == "update") {
-            const tipo = requestObj.type;
-            const gender = requestObj.gender;
-
-            if (estaEnEnum(tipo, Tipo)) {
-              console.log(chalk.green("Tipo correcto"));
-            } else {
-              console.error(chalk.red("Tipo incorrecto"));
-              response = {
-                type: 'add',
-                success: false
-              };
-            }
-
-            if (estaEnEnum(gender, Genero)) {
-              console.log(chalk.green("Género correcto"));
-            } else {
-              console.error(chalk.red("Género incorrecto"));
-              response = {
-                type: 'add',
-                success: false
-              };
-            }
-            if (users.getUserByName(requestObj.user).ownerOf.getFunko(requestObj.id) === undefined) {
-              const FunkoToAdd = new Funko(
-                0,
-                "",
-                "",
-                Tipo.Pop,
-                Genero.Animacion,
-                "",
-                0,
-                false,
-                "",
-                0
-              );
-              Object.assign(FunkoToAdd, requestObj.funkoPop);
+  
+              if (estaEnEnum(gender, Genero)) {
+                console.log(chalk.green("Género correcto"));
+              } else {
+                console.error(chalk.red("Género incorrecto"));
+                response = {
+                  type: 'add',
+                  success: false
+                };
+              }
 
               if (users.getUserByName(requestObj.nameuser) === undefined) {
                 console.log(chalk.red("User not found"));
                 console.log(chalk.yellow("Creating user..."));
-                users.addUser(new User(requestObj.nameuser));
-                users.getUserByName(requestObj.nameuser).ownerOf.addFunko(FunkoToAdd);
+                users.addUser(new User(requestObj.nameuser, FunkoToAdd));
               } else {
                 users.getUserByName(requestObj.nameuser).ownerOf.addFunko(FunkoToAdd);
               }
@@ -207,6 +175,65 @@ export class Server {
                 success: false
               };
             }
+          }
+          else if (requestObj.type == "update") {
+    
+            const FunkoToAdd = new Funko(
+              0,
+              "",
+              "",
+              Tipo.Pop,
+              Genero.Animacion,
+              "",
+              0,
+              false,
+              "",
+              0
+            );
+            Object.assign(FunkoToAdd, requestObj.funkoPop);
+            const tipo = FunkoToAdd.tipo;
+            const gender = FunkoToAdd.genero;
+
+            if (estaEnEnum(tipo, Tipo)) {
+              console.log(chalk.green("Tipo correcto"));
+            } else {
+              console.error(chalk.red("Tipo incorrecto"));
+              response = {
+                type: 'update',
+                success: false
+              };
+            }
+
+            if (estaEnEnum(gender, Genero)) {
+              console.log(chalk.green("Género correcto"));
+            } else {
+              console.error(chalk.red("Género incorrecto"));
+              response = {
+                type: 'update',
+                success: false
+              };
+            }
+            if (users.getUserByName(requestObj.nameuser) === undefined) {
+              console.log(chalk.red("User not found"));
+              console.log(chalk.yellow("Creating user..."));
+              users.addUser(new User(requestObj.nameuser , FunkoToAdd));
+              
+            } else {
+              users.getUserByName(requestObj.nameuser).ownerOf.addFunko(FunkoToAdd);
+            }
+            console.log(
+              chalk.green(
+                "Funko " +
+                  requestObj.nameuser +
+                  " añadido al usuario " +
+                  requestObj.namefunko +
+                  " correctamente"
+              )
+            );
+            response = {
+              type: 'update',
+              success: true
+            };
           }
           else if (requestObj.type == "remove") {
             if (users.getUserByName(requestObj.nameuser) !== undefined) {

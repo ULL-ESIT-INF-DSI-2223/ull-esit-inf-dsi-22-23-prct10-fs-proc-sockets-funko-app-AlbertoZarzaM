@@ -6,16 +6,21 @@ export class UserCollection {
 
   constructor() {
     this._users = [];
-
-    const directorios = fs
-      .readdirSync("./data", { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => dirent.name);
-
-    for (let i = 0; i < directorios.length; i++) {
-      const user = new User(directorios[i]);
-      this._users.push(user);
-    }
+  
+    fs.readdir('./data', { withFileTypes: true }, (error, directorios) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+  
+      for (let i = 0; i < directorios.length; i++) {
+        const dirent = directorios[i];
+        if (dirent.isDirectory()) {
+          const user = new User(dirent.name);
+          this._users.push(user);
+        }
+      }
+    });
   }
 
   /**
@@ -40,10 +45,16 @@ export class UserCollection {
    * @param name Nombre del usuario a eliminar
    */
   removeUserbyName(name: string): void {
-    //borro el directorio
-    fs.rmdirSync(`./data/${name}`, { recursive: true });
-    this._users = this._users.filter((user) => user.nombre !== name);
+    fs.rmdir(`./data/${name}`, { recursive: true }, (error) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+  
+      this._users = this._users.filter((user) => user.nombre !== name);
+    });
   }
+  
 
   /**
    * Devuelve el arreglo de usuarios

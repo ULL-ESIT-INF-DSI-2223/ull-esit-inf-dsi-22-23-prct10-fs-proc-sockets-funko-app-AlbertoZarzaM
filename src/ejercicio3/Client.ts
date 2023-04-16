@@ -7,7 +7,7 @@ import chalk from "chalk";
 
 
 import { Client } from "./classClient.js"; 
-import { Peticion, RequestType } from "./peticion.js";
+import {  RequestType } from "./tipos.js";
 import { FunkoCollection } from "./FunkoCollection.js";
 
 
@@ -114,6 +114,8 @@ yargs(hideBin(process.argv))
 
       const peticion: RequestType = {
         type: "add",
+        nameuser: argv.user,
+        namefunko: argv.id,
         funkoPop: funkotoadd
       };
       cliente.start(peticion);   
@@ -263,6 +265,8 @@ yargs(hideBin(process.argv))
 
       const peticion: RequestType = {
         type: "update",
+        nameuser: argv.user,
+        namefunko: argv.id,
         funkoPop: funkotoadd
       };
       cliente.start(peticion);   
